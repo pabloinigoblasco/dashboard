@@ -15,6 +15,11 @@
 			<% end %>
 		<% end %>
 	</select>
+	
+	<!--<input type="checkbox" id="show_backlog" value="False">Show Backlog</input>-->
+        <%= check_box_tag 'show_backlog', @show_backlog %> Show Backlog
+	<input type="submit" id="submit"></input>
+	<%= submit_tag "Submit" %>
 <% else %>
 	<div class="select_project_container">
 		<% @projects.each do |project_id, project| %>
@@ -29,6 +34,7 @@
 
 <div class="issues_container">
 	<% @statuses.each do |status_id, status| %>
+		<% if status[:name] != "Backlog" or (status[:name] == "Backlog" and @show_backlog!=-1) %>
 		<div class="status_column" data-id="<%= status_id %>">
 			<div class="status_column_header" style="border-bottom-color: <%= status[:color] %>">
 				<span> <%= status[:name] %> </span>
@@ -49,6 +55,7 @@
 							<% end %>
 						</div>
 						<span class="issue_card_title"> <%= issue[:subject] %> </span>
+						<span class="issue_card_author"><i class="bi bi-exclamation-circle"></i> <%= issue[:priority] %> </span>
 						<span class="issue_card_author"><i class="bi bi-person"></i> <%= issue[:author] %> </span>
 						<% if issue[:executor] == '' || issue[:executor].nil? %>
 							<span class="issue_card_executor_not_set"><i class="bi bi-hammer"></i> <%=l :executor_not_set %></span>
@@ -60,6 +67,7 @@
 				<% end %>
 			</div>
 		</div>
+		<% end %>
 	<% end %>
 </div>
 

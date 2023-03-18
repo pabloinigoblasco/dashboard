@@ -4,6 +4,7 @@ class DashboardController < ApplicationController
   def index
     @use_drop_down_menu = Setting.plugin_dashboard['use_drop_down_menu']
     @selected_project_id = params[:project_id].nil? ? -1 : params[:project_id].to_i
+    @show_backlog = params[:show_backlog].nil? ? -1 : params[:show_backlog].to_i
     @selected_executor = params[:executor].nil? ? -1 : params[:executor].to_s
     show_sub_tasks = Setting.plugin_dashboard['display_child_projects_tasks']
     @show_project_badge = @selected_project_id == -1 || @selected_project_id != -1 && show_sub_tasks
@@ -11,7 +12,7 @@ class DashboardController < ApplicationController
     @display_minimized_closed_issue_cards = Setting.plugin_dashboard['display_closed_statuses'] ? Setting.plugin_dashboard['display_minimized_closed_issue_cards'] : false
     @statuses = get_statuses
     @projects = get_projects
-    @issues = get_issues(@selected_project_id, show_sub_tasks)
+    @issues = get_issues(@selected_project_id, show_sub_tasks, @show_backlog)
   end
 
   def set_issue_status
@@ -67,7 +68,7 @@ class DashboardController < ApplicationController
     end
   end
 
-  def get_issues(project_id, with_sub_tasks)
+  def get_issues(project_id, with_sub_tasks, show_backlog)
     id_array = []
 
     if project_id != -1
@@ -94,9 +95,12 @@ class DashboardController < ApplicationController
         :project_id => item.project.id,
         :created_on => item.created_on,
         :author => item.author.name(User::USER_FORMATS[:firstname_lastname]),
-        :executor => item.assigned_to.nil? ? '' : item.assigned_to.name
+        :executor => item.assigned_to.nil? ? '' : item.assigned_to.name,
+        :priority => item.priority,
+        :priority_id => item.priority_id
       }
     end
-    data.sort_by { |item| item[:created_on] }
+    data.sort_by { |item| -item[:priority_id] }
+
   end
 end
