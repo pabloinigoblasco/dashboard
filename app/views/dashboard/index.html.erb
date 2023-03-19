@@ -43,6 +43,7 @@
 	</script>
 	<% @show_backlog = params[:show_backlog] == 'True' %>
 	<%= check_box_tag 'show_backlog', 'False', @show_backlog, onchange: 'submitForm()' %> Show Backlog
+	<br/><%= link_to 'Go to Project Issues', project_issues_path(@selected_project_id) %>
 
 <% else %>
 	<div class="select_project_container">
