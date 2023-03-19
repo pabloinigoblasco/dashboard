@@ -40,11 +40,17 @@
   window.location.href = newUrl;
 }
 
+function closeIssue(issueId) {
+  // Redirecciona al usuario a la página de edición de la tarea con el estado actualizado a "closed"
+  window.location.href = '/issues/' + issueId + '/edit?issue[status_id]=5';
+}
+
 	</script>
 	<% @show_backlog = params[:show_backlog] == 'True' %>
 	<%= check_box_tag 'show_backlog', 'False', @show_backlog, onchange: 'submitForm()' %> Show Backlog
-	<br/><%= link_to 'Go to Project Issues', project_issues_path(@selected_project_id) %>
-
+	<br/><% if @selected_project_id != 'All' %>
+		<%= link_to 'Go to Project Issues', project_issues_path(@selected_project_id) %>
+	<% end %>
 <% else %>
 	<div class="select_project_container">
 		<% @projects.each do |project_id, project| %>
@@ -71,23 +77,28 @@
 					
 					
 					<% if issue[:executor] == @selected_executor || @selected_executor== -1 %>
-					<div class="issue_card" style="border-color: <%= project_color %>" data-id="<%= issue[:id] %>" onclick="goToIssue(<%= issue[:id] %>)">
+					<div class="issue_card" style="border: solid 1px <%= project_color %>" data-id="<%= issue[:id] %>" onclick="goToIssue(<%= issue[:id] %>)">
 						<span class="issue_card_id"> <%= "#" + issue[:id].to_s %> </span>
 						<div class="issue_card_header">
 							<span class="issue_card_header_date"><%= I18n.l(issue[:created_on], format: :long) %></span>
 							<% if @show_project_badge %>
-								<div class="issue_card_header_project" style="background-color: <%= project_color %>"><%= project_name %></div>
+								<div class="issue_card_header_project" style="background-color: <%= project_color %>; border: solid 1px"><%= project_name %></div>
 							<% end %>
 						</div>
 						<span class="issue_card_title"> <%= issue[:subject] %> </span>
 						<span class="issue_card_author"><i class="bi bi-exclamation-circle"></i> <%= issue[:priority] %> </span>
 						<span class="issue_card_author"><i class="bi bi-person"></i> <%= issue[:author] %> </span>
+				
+
 						<% if issue[:executor] == '' || issue[:executor].nil? %>
 							<span class="issue_card_executor_not_set"><i class="bi bi-hammer"></i> <%=l :executor_not_set %></span>
 						<% else %>
 							<span class="issue_card_executor"><i class="bi bi-hammer"></i> <%= issue[:executor] %> </span>
 						<% end %>
 					</div>
+					<% if not status[:is_closed]  and status[:name] == "Resolved" %>
+						<button class="btn btn-secondary btn-sm float-end" onclick="closeIssue(<%= issue[:id] %>)">close</button>
+					<% end %>
 					<% end %>
 				<% end %>
 			</div>
