@@ -16,10 +16,34 @@
 		<% end %>
 	</select>
 	
-	<!--<input type="checkbox" id="show_backlog" value="False">Show Backlog</input>-->
-        <%= check_box_tag 'show_backlog', @show_backlog %> Show Backlog
-	<input type="submit" id="submit"></input>
-	<%= submit_tag "Submit" %>
+	<script>
+	function submitForm() {
+  var showBacklogCheckbox = document.getElementById('show_backlog');
+  var showBacklogValue = showBacklogCheckbox.checked ? 'True' : '';
+  var currentUrl = window.location.href;
+  var newUrl;
+
+  if (showBacklogValue === '') {
+    // Si el checkbox está desactivado, elimina el parámetro show_backlog de la URL si existe
+    var regex = /[?&]show_backlog=[^&]+/g;
+    newUrl = currentUrl.replace(regex, '').replace('?&', '?');
+  } else if (currentUrl.includes('?')) {
+    // Si la URL ya tiene un querystring, actualiza el valor de show_backlog
+    newUrl = currentUrl.replace(/(\?|&)show_backlog=[^&]*/, '');
+    newUrl += newUrl.includes('?') ? '&' : '?';
+    newUrl += 'show_backlog=' + showBacklogValue;
+  } else {
+    // Si la URL no tiene un querystring, agrega el nuevo parámetro show_backlog
+    newUrl = currentUrl + '?show_backlog=' + showBacklogValue;
+  }
+
+  window.location.href = newUrl;
+}
+
+	</script>
+	<% @show_backlog = params[:show_backlog] == 'True' %>
+	<%= check_box_tag 'show_backlog', 'False', @show_backlog, onchange: 'submitForm()' %> Show Backlog
+
 <% else %>
 	<div class="select_project_container">
 		<% @projects.each do |project_id, project| %>
@@ -34,7 +58,7 @@
 
 <div class="issues_container">
 	<% @statuses.each do |status_id, status| %>
-		<% if status[:name] != "Backlog" or (status[:name] == "Backlog" and @show_backlog!=-1) %>
+		<% if status[:name] != "Backlog" or (status[:name] == "Backlog" and not params[:show_backlog].nil?) %>
 		<div class="status_column" data-id="<%= status_id %>">
 			<div class="status_column_header" style="border-bottom-color: <%= status[:color] %>">
 				<span> <%= status[:name] %> </span>
