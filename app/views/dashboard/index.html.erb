@@ -1,12 +1,18 @@
 <% content_for :header_tags do %>
-    <%= stylesheet_link_tag 'style', plugin: 'dashboard' %>
+	<%= stylesheet_link_tag 'style', plugin: 'dashboard' %>
 	<%= javascript_include_tag 'script', plugin: 'dashboard' %>
 	<%= javascript_include_tag 'Sortable.min', plugin: 'dashboard' %>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-<% end %>
+
+
+	<% end %>
+
 
 <% if @use_drop_down_menu %>
-	<select id="select_project">
+
+<table>
+
+	<tr><td>Filter project: </td><td><select id="select_project">
 		<% @projects.each do |project_id, project| %>
 			<% if project_id == @selected_project_id %>
 				<option selected value="<%= project_id %>"><%= project[:name] %></option>
@@ -14,9 +20,50 @@
 				<option value="<%= project_id %>"><%= project[:name] %></option>
 			<% end %>
 		<% end %>
-	</select>
+	</select></td>
+
+
+	<td>Filter User:</td>
+	<td> 
+	  <select id="select_user" onchange="submitUserFilter()">
+		<% if @selected_executor.nil? %>
+		  <option selected value="-1">Any</option>
+		<% end %>
+		<% @users.each do |user_id, user| %>
+		  <% if user[:name] == @selected_executor %>
+			<option selected value="<%= user[:name] %>"><%= user[:name] %></option>
+		  <% else %>
+			<option value="<%= user[:name] %>"><%= user[:name] %></option>
+		  <% end %>
+		<% end %>
+	  </select>
+	</td>
+  <td>
+  <% @show_backlog = params[:show_backlog] == 'True' %>
+
+  </td>
+	</tr>
+
+  </table>
 	
 	<script>
+	function submitUserFilter() {
+		var selectUser = document.getElementById("select_user");
+		var user = selectUser.options[selectUser.selectedIndex].value;
+		var urlParams = new URLSearchParams(window.location.search);
+	  
+		if (user == -1 || selectUser.options[selectUser.selectedIndex].text == "Any") {
+		  urlParams.delete("executor");
+		} else {
+		  urlParams.set("executor", selectUser.options[selectUser.selectedIndex].text);
+		}
+	  
+		var currentUrl = window.location.href.split('?')[0];
+		var newUrl = currentUrl + '?' + urlParams.toString();
+		window.location.href = newUrl;
+	  }
+	  
+
 	function submitForm() {
   var showBacklogCheckbox = document.getElementById('show_backlog');
   var showBacklogValue = showBacklogCheckbox.checked ? 'True' : '';
@@ -41,16 +88,27 @@
 }
 
 function closeIssue(issueId) {
-  // Redirecciona al usuario a la página de edición de la tarea con el estado actualizado a "closed"
-  window.location.href = '/issues/' + issueId + '/edit?issue[status_id]=5';
+  // Envía una petición AJAX para cambiar el estado de la tarea a "closed"
+  $.ajax({
+    url: '/issues/' + issueId + '.json',
+    method: 'PUT',
+    data: { issue: { status_id: 5 } },
+    success: function(data) {
+      // Actualiza la vista
+      window.location.reload();
+    }
+  });
 }
 
 	</script>
-	<% @show_backlog = params[:show_backlog] == 'True' %>
 	<%= check_box_tag 'show_backlog', 'False', @show_backlog, onchange: 'submitForm()' %> Show Backlog
-	<br/><% if @selected_project_id != 'All' %>
-		<%= link_to 'Go to Project Issues', project_issues_path(@selected_project_id) %>
-	<% end %>
+	<br/>
+	  <%= link_to 'Go to Project Issues', project_issues_path(@selected_project_id) %>
+	  <br/>
+	  <%= link_to 'New Issue', new_project_issue_path(@selected_project_id) %>
+	
+	
+
 <% else %>
 	<div class="select_project_container">
 		<% @projects.each do |project_id, project| %>
@@ -77,8 +135,9 @@ function closeIssue(issueId) {
 					
 					
 					<% if issue[:executor] == @selected_executor || @selected_executor== -1 %>
-					<div class="issue_card" style="border: solid 1px <%= project_color %>" data-id="<%= issue[:id] %>" onclick="goToIssue(<%= issue[:id] %>)">
-						<span class="issue_card_id"> <%= "#" + issue[:id].to_s %> </span>
+					<div class="issue_card priority-<%= issue[:priority] %>" style="border: solid 1px <%= project_color %>" data-id="<%= issue[:id] %>" onclick="goToIssue(<%= issue[:id] %>)">
+
+					<span class="issue_card_id"> <%= "#" + issue[:id].to_s %> </span>
 						<div class="issue_card_header">
 							<span class="issue_card_header_date"><%= I18n.l(issue[:created_on], format: :long) %></span>
 							<% if @show_project_badge %>

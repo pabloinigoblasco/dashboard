@@ -85,14 +85,22 @@
 	margin: 3px;
 	border-radius: 5px;
 	height: min-content;
-	background-color: rgb(240, 240, 240);
+	
 	align-self: center;
 	align-items: flex-start;
 	flex-direction: column;
 	justify-content: center;
 	transition: background-color .1s ease-in-out;
 }
-
+.issue_card.priority-High {
+	background-color: #ffd4d4;
+}
+.issue_card.priority-Low {
+	background-color: #c7d5f4;
+}
+.issue_card.priority-Normal {
+	background-color: rgb(260, 260, 260);
+}
 .status_column_closed_issues .issue_card {
 	display: inline-flex;
 	flex: auto;
@@ -186,7 +194,7 @@
 	width: fit-content;
 	height: fit-content;
 	text-align: center;
-	color: rgb(255, 255, 255);
+	color: rgb(0, 0, 0);
 	font-size: smaller;
 }
 

@@ -12,6 +12,7 @@ class DashboardController < ApplicationController
     @display_minimized_closed_issue_cards = Setting.plugin_dashboard['display_closed_statuses'] ? Setting.plugin_dashboard['display_minimized_closed_issue_cards'] : false
     @statuses = get_statuses
     @projects = get_projects
+    @users = get_users
     @issues = get_issues(@selected_project_id, show_sub_tasks, @show_backlog)
   end
 
@@ -60,6 +61,20 @@ class DashboardController < ApplicationController
     end
     data
   end
+
+  def get_users
+    data = {-1 => {
+      :name => 'Any'
+    }}
+  
+    User.active.each do |user|
+      data[user.id] = {
+        :name => user.name
+      }
+    end
+    data
+  end
+  
 
   def add_children_ids(id_array, project)
     project.children.each do |child_project|
